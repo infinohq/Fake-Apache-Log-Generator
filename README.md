@@ -8,6 +8,11 @@ It utilizes the excellent [Faker](https://github.com/joke2k/faker/) library to g
 
 ***
 
+## Generating Fake logs for Infino
+
+Just run command: `python apache-fake-log-gen.py -n 0 &> my-apache.log &`. Monitor the size of `my-apache.log` and kill the process when enough is generated.
+
+
 ## Basic Usage
 
 Generate a single log line to STDOUT
