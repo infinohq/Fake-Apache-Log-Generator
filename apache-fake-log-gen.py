@@ -17,6 +17,15 @@ local = get_localzone()
 # allow writing different patterns (Common Log, Apache Error log etc)
 # log rotation
 
+def parse_size_limit(size_limit):
+    unit_dict = {'k': 1024, 'm': 1024**2, 'g': 1024**3}
+    size_unit = size_limit[-1].lower()
+    if size_unit.isdigit():
+        size_value = int(size_limit)
+    else:
+        size_value = int(size_limit[:-1]) * unit_dict.get(size_unit, 1)
+    return size_value
+
 
 parser = argparse.ArgumentParser(__file__, description="Fake Apache Log Generator")
 parser.add_argument("--log-format", "-l", dest='log_format', help="Log format, Common or Extended Log Format ", choices=['CLF','ELF'], default="ELF" )
@@ -24,6 +33,8 @@ parser.add_argument("--num", "-n", dest='num_lines', help="Number of lines to ge
 parser.add_argument("--prefix", "-p", dest='file_prefix', help="Prefix the output file name", type=str)
 parser.add_argument("--sleep", "-s", help="Sleep this long between lines (in seconds)", default=0.0, type=float)
 parser.add_argument("--month", "-m", help="Month to use", default=1, type=int)
+parser.add_argument("--size", help="Size limit of the generated file (e.g., 100k, 10m, 1g)", default="1m", type=str)
+
 
 args = parser.parse_args()
 
@@ -31,6 +42,8 @@ log_lines = args.num_lines
 file_prefix = args.file_prefix
 log_format = args.log_format
 month = args.month
+
+size_limit = parse_size_limit(args.size)
 
 faker = Faker()
 
@@ -48,6 +61,7 @@ resources=["/list","/wp-content","/wp-admin","/explore","/search/tag/list","/app
 ualist = [faker.firefox, faker.chrome, faker.safari, faker.internet_explorer, faker.opera]
 
 flag = True
+total_bytes = 0
 while (flag):
     increment = datetime.timedelta(seconds=0.01)
     otime += increment
@@ -66,12 +80,15 @@ while (flag):
     referer = faker.uri()
     useragent = numpy.random.choice(ualist,p=[0.5,0.3,0.1,0.05,0.05] )()
     if log_format == "CLF":
-        print('%s - - [%s %s] "%s %s HTTP/1.0" %s %s' % (ip,dt,tz,vrb,uri,resp,byt))
-    elif log_format == "ELF": 
-        print('%s - - [%s %s] "%s %s HTTP/1.0" %s %s "%s" "%s"' % (ip,dt,tz,vrb,uri,resp,byt,referer,useragent))
-    
+        log_line = '%s - - [%s %s] "%s %s HTTP/1.0" %s %s' % (ip,dt,tz,vrb,uri,resp,byt)
+    elif log_format == "ELF":
+        log_line = '%s - - [%s %s] "%s %s HTTP/1.0" %s %s "%s" "%s"' % (ip,dt,tz,vrb,uri,resp,byt,referer,useragent)
 
+    print(log_line)
+
+    total_bytes += len(log_line)
     log_lines = log_lines - 1
-    flag = False if log_lines == 0 else True
+    flag = False if total_bytes > size_limit and log_lines <= 0 else True
+
     if args.sleep:
         time.sleep(args.sleep)
