@@ -8,46 +8,38 @@ It utilizes the excellent [Faker](https://github.com/joke2k/faker/) library to g
 
 ***
 
+## Requirements
+* Python 3.10.10
+
 ## Generating Fake logs for Infino
-
-* Make sure the dependencies are installed `pip install -r requirements.txt`
-* Just run command: `python apache-fake-log-gen.py -n 0 &> my-apache.log &`. Monitor the size of `my-apache.log` and kill the process when enough is generated.
-
-
-## Basic Usage
-
-Generate a single log line to STDOUT
-```
-$ python apache-fake-log-gen.py
-```
-
-Generate 100 log lines into a .log file
-```
-$ python apache-fake-log-gen.py -n 100 -o LOG
-```
-
-Generate 100 log lines into a .gz file at intervals of 10 seconds
-```
-$ python apache-fake-log-gen.py -n 100 -o GZ -s 10
-```
-
-Infinite log file generation (useful for testing File Tail Readers)
-```
-$ python apache-fake-log-gen.py -n 0 -o LOG
-```
-
-Prefix the output filename
-```
-$ python apache-fake-log-gen.py -n 100 -o LOG -p WEB1
-```
+1. Install [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation).
+2. [Setup your shell](https://github.com/pyenv/pyenv?tab=readme-ov-file#set-up-your-shell-environment-for-pyenv) to automatically activate virtual env assigned to a directory.
+2. Install python 3.10.10 using pyenv.
+   ```
+   pyenv install 3.10.10
+   ```
+3. Create a virtual env based on python 3.10.10
+   ```
+   pyenv virtualenv 3.10.10 py-3.10.10
+   ```
+4. Set the new virtualenv as the default for the Fake-Apache-Log-Generator directory.
+   ```
+   cd <Path to Fake-Apache-Log-Generator>
+   pyenv local py-3.10.10
+   ```
+5. Install the dependencies using `pip install -r requirements.txt`
+6. Run the fake log generator and specify the size of the log file to be generated.
+   ```
+   python apache-fake-log-gen.py --size 10g &> Apache-10G.log &`
+   ```
 
 
-Detailed help
+## Detailed help
 ```
 $ python apache-fake-log-gen.py -h
 usage: apache-fake-log-gen.py [-h] [--output {LOG,GZ,CONSOLE}]
                               [--num NUM_LINES] [--prefix FILE_PREFIX]
-                              [--sleep SLEEP]
+                              [--sleep SLEEP] [--size FILE_SIZE]
 
 Fake Apache Log Generator
 
@@ -61,6 +53,8 @@ optional arguments:
                         Prefix the output file name
   --sleep SLEEP, -s SLEEP
                         Sleep this long between lines (in seconds)
+  --size FILE_SIZE, -z FILE_SIZE
+                        Size limit of the generated file (e.g., 100k, 10m, 1g)
 ```
 
 ## Usage in Docker
@@ -75,10 +69,6 @@ Run the application, and provide application command line arguments as Docker CM
 docker run --rm apache-fake-log-gen -n 10 -s 1
 ```
 NOTE: `-o LOG` option does not work in this case.
-
-## Requirements
-* Python 2.7
-* ```pip install -r requirements.txt```
 
 ## License
 This script is released under the [Apache version 2](LICENSE) license.
